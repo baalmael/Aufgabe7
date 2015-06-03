@@ -2,6 +2,8 @@ package de.uni_hamburg.informatik.swt.se2.kino.werkzeuge.kasse;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.Observable;
+import java.util.Observer;
 
 import de.uni_hamburg.informatik.swt.se2.kino.fachwerte.Datum;
 import de.uni_hamburg.informatik.swt.se2.kino.materialien.Kino;
@@ -19,7 +21,7 @@ import de.uni_hamburg.informatik.swt.se2.kino.werkzeuge.vorstellungsauswaehler.V
  * @author SE2-Team
  * @version SoSe 2015
  */
-public class KassenWerkzeug
+public class KassenWerkzeug implements Observer
 {
     // Das Material dieses Werkzeugs
     private Kino _kino;
@@ -55,6 +57,10 @@ public class KassenWerkzeug
                 _datumAuswaehlWerkzeug.getUIPanel(),
                 _vorstellungAuswaehlWerkzeug.getUIPanel());
 
+        //als Beobachter für Subwerkzeuge eintragen
+        _datumAuswaehlWerkzeug.addObserver(this);
+        _vorstellungAuswaehlWerkzeug.addObserver(this);
+ 
         registriereUIAktionen();
         setzeTagesplanFuerAusgewaehltesDatum();
         setzeAusgewaehlteVorstellung();
@@ -67,14 +73,15 @@ public class KassenWerkzeug
      */
     private void registriereUIAktionen()
     {
-        _ui.getBeendenButton().addActionListener(new ActionListener()
-        {
-            @Override
-            public void actionPerformed(ActionEvent e)
+        _ui.getBeendenButton()
+            .addActionListener(new ActionListener()
             {
-                reagiereAufBeendenButton();
-            }
-        });
+                @Override
+                public void actionPerformed(ActionEvent e)
+                {
+                    reagiereAufBeendenButton();
+                }
+            });
     }
 
     /**
@@ -118,5 +125,19 @@ public class KassenWerkzeug
     private Vorstellung getAusgewaehlteVorstellung()
     {
         return _vorstellungAuswaehlWerkzeug.getAusgewaehlteVorstellung();
+    }
+
+    @Override
+    public void update(Observable arg0, Object arg1)
+    {
+        if (arg0 instanceof DatumAuswaehlWerkzeug)
+        {
+            setzeTagesplanFuerAusgewaehltesDatum();
+            setzeAusgewaehlteVorstellung();
+        }
+        else if (arg0 instanceof VorstellungsAuswaehlWerkzeug)
+        {
+            setzeAusgewaehlteVorstellung();
+        }
     }
 }
